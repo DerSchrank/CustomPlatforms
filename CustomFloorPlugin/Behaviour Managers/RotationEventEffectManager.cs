@@ -1,7 +1,7 @@
 ﻿using CustomFloorPlugin.Util;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using CustomUI.Utilities;
 
 namespace CustomFloorPlugin
 {
@@ -14,7 +14,9 @@ namespace CustomFloorPlugin
         {
             foreach (LightRotationEventEffect rotEffect in lightRotationEffects)
             {
-                BSEvents.beatmapEvent += rotEffect.HandleBeatmapObjectCallbackControllerBeatmapEventDidTrigger;
+                var action = BS_Utils.Utilities.ReflectionUtil.GetPrivateField<Action<BeatmapEventData>>(rotEffect, "HandleBeatmapObjectCallbackControllerBeatmapEventDidTrigger");
+
+                BSEvents.beatmapEvent += action;
             }
             BSEvents.menuSceneLoaded += HandleSceneChange;
             BSEvents.gameSceneLoaded += HandleSceneChange;
@@ -25,7 +27,9 @@ namespace CustomFloorPlugin
         {
             foreach (LightRotationEventEffect rotEffect in lightRotationEffects)
             {
-                BSEvents.beatmapEvent -= rotEffect.HandleBeatmapObjectCallbackControllerBeatmapEventDidTrigger;
+                var action = BS_Utils.Utilities.ReflectionUtil.GetPrivateField<Action<BeatmapEventData>>(rotEffect, "HandleBeatmapObjectCallbackControllerBeatmapEventDidTrigger");
+
+                BSEvents.beatmapEvent -= action;
             }
             BSEvents.menuSceneLoaded -= HandleSceneChange;
             BSEvents.gameSceneLoaded -= HandleSceneChange;
@@ -35,7 +39,7 @@ namespace CustomFloorPlugin
         {
             foreach (LightRotationEventEffect rotEffect in lightRotationEffects)
             {
-                rotEffect.transform.localRotation = ReflectionUtil.GetPrivateField<Quaternion>(rotEffect, "_startRotation");
+                rotEffect.transform.localRotation = BS_Utils.Utilities.ReflectionUtil.GetPrivateField<Quaternion>(rotEffect, "_startRotation");
                 rotEffect.enabled = false;
             }
         }
@@ -51,12 +55,12 @@ namespace CustomFloorPlugin
 
             foreach (RotationEventEffect effectDescriptor in effectDescriptors)
             {
-                LightRotationEventEffect rotEvent = effectDescriptor.gameObject.AddComponent<LightRotationEventEffect>();
+                var rotEvent = effectDescriptor.gameObject.AddComponent<LightRotationEventEffect>();
 
-                ReflectionUtil.SetPrivateField(rotEvent, "_event", (BeatmapEventType)effectDescriptor.eventType);
-                ReflectionUtil.SetPrivateField(rotEvent, "_rotationVector", effectDescriptor.rotationVector);
-                ReflectionUtil.SetPrivateField(rotEvent, "_transform", rotEvent.transform);
-                ReflectionUtil.SetPrivateField(rotEvent, "_startRotation", rotEvent.transform.rotation);
+                BS_Utils.Utilities.ReflectionUtil.SetPrivateField(rotEvent, "_event", (BeatmapEventType)effectDescriptor.eventType);
+                BS_Utils.Utilities.ReflectionUtil.SetPrivateField(rotEvent, "_rotationVector", effectDescriptor.rotationVector);
+                BS_Utils.Utilities.ReflectionUtil.SetPrivateField(rotEvent, "_transform", rotEvent.transform);
+                BS_Utils.Utilities.ReflectionUtil.SetPrivateField(rotEvent, "_startRotation", rotEvent.transform.rotation);
                 lightRotationEffects.Add(rotEvent);
                 effectDescriptors.Add(effectDescriptor);
             }

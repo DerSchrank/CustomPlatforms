@@ -16,26 +16,21 @@ public class MeshBloomPrePassLight : TubeBloomPrePassLight
     protected override void OnEnable()
     {
         base.OnEnable();
+
         _parametricBoxController.enabled = false;
+        renderer.material.color = color;
     }
     
-    public override Color color
+    public new Color color
     {
         get
         {
-            return this._color;
+            return base.color;
         }
         set
         {
             base.color = value;
             if(renderer.material!=null) renderer.material.color = value;
         }
-    }
-
-    public override void Refresh()
-    {
-        base.Refresh();
-        renderer.material.color = color;
-        _parametricBoxController.enabled = false;
     }
 }

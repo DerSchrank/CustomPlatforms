@@ -1,8 +1,9 @@
-﻿using CustomFloorPlugin.Util;
+﻿using BS_Utils.Utilities;
+using CustomFloorPlugin.Util;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using CustomUI.Utilities;
+using BSEvents = CustomFloorPlugin.Util.BSEvents;
 
 namespace CustomFloorPlugin
 {

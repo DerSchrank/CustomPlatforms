@@ -1,7 +1,8 @@
-﻿using CustomFloorPlugin.Util;
+﻿using BS_Utils.Utilities;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using CustomUI.Utilities;
+using BSEvents = CustomFloorPlugin.Util.BSEvents;
 
 namespace CustomFloorPlugin
 {
@@ -14,23 +15,28 @@ namespace CustomFloorPlugin
         
         private void OnEnable()
         {
-            foreach (TrackLaneRingsRotationEffectSpawner spawner in rotationSpawners)
-            {
-                BSEvents.beatmapEvent += spawner.HandleBeatmapObjectCallbackControllerBeatmapEventDidTrigger;
-            }
+            BSEvents.beatmapEvent += ProxyEvent;
             foreach (TrackLaneRingsPositionStepEffectSpawner spawner in stepSpawners)
             {
                 BSEvents.beatmapEvent += spawner.HandleBeatmapObjectCallbackControllerBeatmapEventDidTrigger;
             }
         }
 
+        private void ProxyEvent(BeatmapEventData data)
+        {
+            foreach (TrackLaneRingsRotationEffectSpawner spawner in rotationSpawners)
+            {
+                ReflectionUtil.InvokeMethod(spawner, "HandleBeatmapObjectCallbackControllerBeatmapEventDidTrigger", new object[] { data });
+            }
+        }
+
         private void Start()
         {
             // make sure the rings are parented to this transform
-            foreach (TrackLaneRingsManager trackLaneRingsManager in trackLaneRingsManagers)
+            foreach (var trackLaneRingsManager in trackLaneRingsManagers)
             {
-                TrackLaneRing[] rings = ReflectionUtil.GetPrivateField<TrackLaneRing[]>(trackLaneRingsManager, "_rings");
-                foreach (TrackLaneRing ring in rings)
+                var rings = ReflectionUtil.GetPrivateField<TrackLaneRing[]>(trackLaneRingsManager, "_rings");
+                foreach (var ring in rings)
                 {
                     ring.transform.parent = transform;
                 }
@@ -39,10 +45,7 @@ namespace CustomFloorPlugin
 
         private void OnDisable()
         {
-            foreach (TrackLaneRingsRotationEffectSpawner spawner in rotationSpawners)
-            {
-                BSEvents.beatmapEvent -= spawner.HandleBeatmapObjectCallbackControllerBeatmapEventDidTrigger;
-            }
+            BSEvents.beatmapEvent -= ProxyEvent;
             foreach (TrackLaneRingsPositionStepEffectSpawner spawner in stepSpawners)
             {
                 BSEvents.beatmapEvent -= spawner.HandleBeatmapObjectCallbackControllerBeatmapEventDidTrigger;
@@ -62,11 +65,10 @@ namespace CustomFloorPlugin
             {
                 trackRingsDescriptors.Add(trackRingDesc);
 
-                TrackLaneRingsManager ringsManager =
-                    trackRingDesc.gameObject.AddComponent<TrackLaneRingsManager>();
+                var ringsManager = trackRingDesc.gameObject.AddComponent<TrackLaneRingsManager>();
                 trackLaneRingsManagers.Add(ringsManager);
 
-                TrackLaneRing ring = trackRingDesc.trackLaneRingPrefab.AddComponent<TrackLaneRing>();
+                var ring = trackRingDesc.trackLaneRingPrefab.AddComponent<TrackLaneRing>();
 
                 ReflectionUtil.SetPrivateField(ringsManager, "_trackLaneRingPrefab", ring);
                 ReflectionUtil.SetPrivateField(ringsManager, "_ringCount", trackRingDesc.ringCount);
@@ -74,8 +76,7 @@ namespace CustomFloorPlugin
 
                 if (trackRingDesc.useRotationEffect)
                 {
-                    TrackLaneRingsRotationEffect rotationEffect =
-                        trackRingDesc.gameObject.AddComponent<TrackLaneRingsRotationEffect>();
+                    var rotationEffect = trackRingDesc.gameObject.AddComponent<TrackLaneRingsRotationEffect>();
 
                     ReflectionUtil.SetPrivateField(rotationEffect, "_trackLaneRingsManager", ringsManager);
                     ReflectionUtil.SetPrivateField(rotationEffect, "_startupRotationAngle", trackRingDesc.startupRotationAngle);
@@ -83,8 +84,7 @@ namespace CustomFloorPlugin
                     ReflectionUtil.SetPrivateField(rotationEffect, "_startupRotationPropagationSpeed", trackRingDesc.startupRotationPropagationSpeed);
                     ReflectionUtil.SetPrivateField(rotationEffect, "_startupRotationFlexySpeed", trackRingDesc.startupRotationFlexySpeed);
 
-                    TrackLaneRingsRotationEffectSpawner rotationEffectSpawner =
-                        trackRingDesc.gameObject.AddComponent<TrackLaneRingsRotationEffectSpawner>();
+                    var rotationEffectSpawner = trackRingDesc.gameObject.AddComponent<TrackLaneRingsRotationEffectSpawner>();
                     rotationSpawners.Add(rotationEffectSpawner);
 
                     ReflectionUtil.SetPrivateField(rotationEffectSpawner, "_beatmapEventType", (BeatmapEventType)trackRingDesc.rotationSongEventType);
@@ -95,8 +95,7 @@ namespace CustomFloorPlugin
                 }
                 if (trackRingDesc.useStepEffect)
                 {
-                    TrackLaneRingsPositionStepEffectSpawner stepEffectSpawner =
-                        trackRingDesc.gameObject.AddComponent<TrackLaneRingsPositionStepEffectSpawner>();
+                    var stepEffectSpawner = trackRingDesc.gameObject.AddComponent<TrackLaneRingsPositionStepEffectSpawner>();
                     stepSpawners.Add(stepEffectSpawner);
 
                     ReflectionUtil.SetPrivateField(stepEffectSpawner, "_trackLaneRingsManager", ringsManager);

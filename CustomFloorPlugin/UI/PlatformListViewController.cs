@@ -1,33 +1,65 @@
-﻿using HMUI;
-using CustomUI.BeatSaber;
-using CustomUI.Utilities;
+﻿using BeatSaberMarkupLanguage.Attributes;
+using BeatSaberMarkupLanguage.Components;
+using BeatSaberMarkupLanguage.ViewControllers;
+using HMUI;
+using System;
+using System.Linq;
 using TMPro;
+using UnityEngine;
 
 namespace CustomFloorPlugin
 {
-    class PlatformListViewController : CustomListViewController
+    internal class PlatformListViewController : BSMLResourceViewController
     {
-        public override void __Activate(ActivationType activationType)
+        public override string ResourceName => "CustomFloorPlugin.UI.PlatformList.bsml";
+
+        public static PlatformListViewController Instance;
+
+        public Action<CustomPlatform> customPlatformChanged;
+
+        [UIComponent("platformList")]
+        public CustomListTableData customListTableData;
+
+        [UIAction("platformSelect")]
+        public void Select(TableView _, int row)
         {
-            base.__Activate(activationType);
-            _customListTableView.SelectCellWithIdx(PlatformManager.Instance.currentPlatformIndex);
+            PlatformManager.Instance.ChangeToPlatform(row);
+            customPlatformChanged?.Invoke(PlatformManager.Instance.currentPlatform);
         }
 
-        public override int NumberOfCells()
+        [UIAction("reloadPlatforms")]
+        public void ReloadMaterials()
         {
-            return PlatformManager.Instance.GetPlatforms().Length;
+            PlatformManager.Instance.RefreshPlatforms();
+            SetupList();
+            Select(customListTableData.tableView, PlatformManager.Instance.currentPlatformIndex);
         }
 
-        public override TableCell CellForIdx(int idx)
+        [UIAction("#post-parse")]
+        public void SetupList()
         {
-            CustomPlatform platform = PlatformManager.Instance.GetPlatform(idx);
+            customListTableData.data.Clear();
+            foreach (var platform in PlatformManager.Instance.GetPlatforms())
+            {
+                var customCellInfo = new CustomListTableData.CustomCellInfo(platform.platName, platform.platAuthor, platform.icon?.texture);
+                customListTableData.data.Add(customCellInfo);
+            }
 
-            LevelListTableCell _tableCell = GetTableCell(idx, false);
-            _tableCell.GetPrivateField<TextMeshProUGUI>("_songNameText").text = platform.platName;
-            _tableCell.GetPrivateField<TextMeshProUGUI>("_authorText").text = platform.platAuthor;
-            _tableCell.GetPrivateField<UnityEngine.UI.Image>("_coverImage").sprite = platform.icon;
-            _tableCell.reuseIdentifier = "PlatformListCell";
-            return _tableCell;
+            customListTableData.tableView.ReloadData();
+            var selectedSaber = PlatformManager.Instance.currentPlatformIndex;
+
+            customListTableData.tableView.SelectCellWithIdx(selectedSaber);
+            if (!customListTableData.tableView.visibleCells.Where(x => x.selected).Any())
+                customListTableData.tableView.ScrollToCellWithIdx(selectedSaber, TableViewScroller.ScrollPositionType.Beginning, true);
+        }
+
+        protected override void DidActivate(bool firstActivation, ActivationType type)
+        {
+            base.DidActivate(firstActivation, type);
+
+            Instance = this;
+
+            Select(customListTableData.tableView, PlatformManager.Instance.currentPlatformIndex);
         }
     }
 }

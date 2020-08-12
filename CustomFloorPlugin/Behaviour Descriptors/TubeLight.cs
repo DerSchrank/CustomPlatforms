@@ -1,11 +1,12 @@
-﻿using CustomFloorPlugin.Util;
-using CustomUI.Utilities;
+﻿using BS_Utils.Utilities;
+using CustomFloorPlugin.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using BSEvents = CustomFloorPlugin.Util.BSEvents;
 
 namespace CustomFloorPlugin
 {
@@ -91,17 +92,19 @@ namespace CustomFloorPlugin
             tubeBloomLight.SetPrivateField("_parametricBoxController", parabox);
             var parasprite = tubeBloomLight.GetComponentInChildren<Parametric3SliceSpriteController>();
             tubeBloomLight.SetPrivateField("_dynamic3SliceSprite", parasprite);
-            parasprite.Init();
+
+            parasprite.InvokeMethod("Init");
             parasprite.GetComponent<MeshRenderer>().enabled = false;
 
             tubeBloomLight.color = tl.color * 0.9f;
 
-            var prop = typeof(BSLight).GetField("_ID", BindingFlags.NonPublic | BindingFlags.Instance);
-            prop.SetValue(tubeBloomLight, (int)tl.lightsID);
+            //var prop = tubeBloomLight.GetType().GetField("_ID", BindingFlags.NonPublic | BindingFlags.Instance);
+            //prop.SetValue(tubeBloomLight, (int)tl.lightsID);
 
             //tubeBloomLight.InvokePrivateMethod("OnDisable", new object[0]);
-            tubeBloomLight.Refresh();
-            TubeLightManager.UpdateEventTubeLightList();
+            tubeBloomLight.InvokeMethod("Refresh");
+
+            //TubeLightManager.UpdateEventTubeLightList();
         }
 
 
@@ -110,7 +113,7 @@ namespace CustomFloorPlugin
             BSEvents.menuSceneLoaded += SetColorToDefault;
             BSEvents.menuSceneLoadedFresh += SetColorToDefault;
             SetColorToDefault();
-            tubeBloomLight.Refresh();
+            tubeBloomLight.InvokeMethod("Refresh");
         }
 
         private void OnDisable()
@@ -122,7 +125,7 @@ namespace CustomFloorPlugin
         private void SetColorToDefault()
         {
             tubeBloomLight.color = color * 0.9f;
-            tubeBloomLight.Refresh();
+            tubeBloomLight.InvokeMethod("Refresh");
         }
     }
 }

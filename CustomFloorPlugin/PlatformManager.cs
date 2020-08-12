@@ -1,20 +1,21 @@
 ﻿using UnityEngine;
 using System.Linq;
 using CustomFloorPlugin.Util;
+using BeatSaberMarkupLanguage.Attributes;
+using System.Collections.Generic;
 
 namespace CustomFloorPlugin
 {
     public class PlatformManager : MonoBehaviour
     {
         public static PlatformManager Instance;
-        
+
         private EnvironmentHider menuEnvHider;
         private EnvironmentHider gameEnvHider;
 
         private PlatformLoader platformLoader;
 
         private CustomPlatform[] platforms;
-        private int platformIndex = 0;
 
         public static void OnLoad()
         {
@@ -49,7 +50,7 @@ namespace CustomFloorPlugin
 
             HandleMenuSceneLoadedFresh();
             
-            PlatformUI.OnLoad();
+            //PlatformUI.OnLoad();
         }
 
         public CustomPlatform AddPlatform(string path)
@@ -75,6 +76,11 @@ namespace CustomFloorPlugin
             }
             platforms = platformLoader.CreateAllPlatforms(transform);
 
+            PlatformFromUserPrefs();
+        }
+
+        public void PlatformFromUserPrefs()
+        {
             // Retrieve saved path from player prefs if it exists
             if (Plugin.config.HasKey("Data", "CustomPlatformPath"))
             {
@@ -84,12 +90,11 @@ namespace CustomFloorPlugin
                 {
                     if (savedPath == platforms[i].platName + platforms[i].platAuthor)
                     {
-                        platformIndex = i;
+                        ChangeToPlatform(i);
                         break;
                     }
                 }
             }
-            ChangeToPlatform(platformIndex);
         }
 
         private void HandleGameSceneLoaded()
@@ -99,7 +104,7 @@ namespace CustomFloorPlugin
 
             EnvironmentArranger.RearrangeEnvironment();
             TubeLightManager.CreateAdditionalLightSwitchControllers();
-            TubeLightManager.UpdateEventTubeLightList();
+            //TubeLightManager.UpdateEventTubeLightList();
         }
 
         private void HandleMenuSceneLoadedFresh()
@@ -110,7 +115,9 @@ namespace CustomFloorPlugin
 
         private void HandleMenuSceneLoaded()
         {
+            Debug.Log("PlatformFromUserPrefs?");
             menuEnvHider.HideObjectsForPlatform(currentPlatform);
+            PlatformFromUserPrefs();
         }
         
         private void Update()
@@ -121,14 +128,13 @@ namespace CustomFloorPlugin
             }
         }
 
-        public int currentPlatformIndex { get { return platformIndex; } }
+        public int currentPlatformIndex { get; private set; } = 0;
+        public static int CurrentPlatformIndex { get { return Instance.currentPlatformIndex; } }
 
-        public CustomPlatform currentPlatform { get { return platforms[platformIndex]; } }
-        
-        public CustomPlatform[] GetPlatforms()
-        {
-            return platforms;
-        }
+        public CustomPlatform currentPlatform { get { return platforms[currentPlatformIndex]; } }
+
+        public static List<CustomPlatform> AllPlatforms { get => Instance.platforms.ToList(); }
+        public CustomPlatform[] GetPlatforms() => platforms;
 
         public CustomPlatform GetPlatform(int i)
         {
@@ -136,21 +142,28 @@ namespace CustomFloorPlugin
         }
         public void NextPlatform()
         {
-            ChangeToPlatform(platformIndex + 1);
+            ChangeToPlatform(currentPlatformIndex + 1);
         }
 
         public void PrevPlatform()
         {
-            ChangeToPlatform(platformIndex - 1);
+            ChangeToPlatform(currentPlatformIndex - 1);
+        }
+
+        public static void TempChangeToPlatform(int index)
+        {
+            Instance.ChangeToPlatform(index, false);
         }
 
         public void ChangeToPlatform(int index, bool save = true)
         {
+            Debug.Log($"Change from {currentPlatformIndex} to {index}");
+
             // Hide current Platform
             currentPlatform.gameObject.SetActive(false);
 
             // Increment index
-            platformIndex = index % platforms.Length;
+            currentPlatformIndex = index % platforms.Length;
             
             // Save path into ModPrefs
             if (save)
@@ -164,7 +177,7 @@ namespace CustomFloorPlugin
             gameEnvHider.HideObjectsForPlatform(currentPlatform);
 
             // Update lightSwitchEvent TubeLight references
-            TubeLightManager.UpdateEventTubeLightList();
+            //TubeLightManager.UpdateEventTubeLightList();
         }
     }
 }

@@ -2,7 +2,6 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using CustomUI.Utilities;
 
 namespace CustomFloorPlugin.Util
 {
@@ -20,8 +19,8 @@ namespace CustomFloorPlugin.Util
         // Menu Events
         public static event Action<StandardLevelDetailViewController, IDifficultyBeatmap> difficultySelected;
         public static event Action<BeatmapCharacteristicSegmentedControlController, BeatmapCharacteristicSO> characteristicSelected;
-        public static event Action<LevelPacksViewController, IBeatmapLevelPack> levelPackSelected;
-        public static event Action<LevelPackLevelsViewController, IBeatmapLevel> levelSelected;
+        //public static event Action<LevelPacksViewController, IBeatmapLevelPack> levelPackSelected;
+        public static event Action<LevelCollectionViewController, IBeatmapLevel> levelSelected;
 
         // Game Events
         public static event Action songPaused;
@@ -37,16 +36,16 @@ namespace CustomFloorPlugin.Util
         public static event Action<int> multiplierDidIncrease;
         public static event Action<int> comboDidChange;
         public static event Action comboDidBreak;
-        public static event Action<int> scoreDidChange;
+        public static event Action<int, int> scoreDidChange;
         public static event Action<float> energyDidChange;
         public static event Action energyReachedZero;
 
         public static event Action<BeatmapEventData> beatmapEvent;
 
-        public static event Action<Saber.SaberType> sabersStartCollide;
-        public static event Action<Saber.SaberType> sabersEndCollide;
+        public static event Action<SaberType> sabersStartCollide;
+        public static event Action<SaberType> sabersEndCollide;
 
-        const string Menu = "MenuCore";
+        const string Menu = "MenuViewControllers";
         const string Game = "GameCore";
         const string EmptyTransition = "EmptyTransition";
 
@@ -57,6 +56,8 @@ namespace CustomFloorPlugin.Util
             if (Instance != null) return;
             GameObject go = new GameObject("BSEvents");
             go.AddComponent<BSEvents>();
+
+            Debug.Log("Loaded BSEvents");
         }
 
         private void Awake()
@@ -71,6 +72,7 @@ namespace CustomFloorPlugin.Util
 
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)
         {
+            Debug.Log($"SceneManagerOnActiveSceneChanged {arg1.name}");
             try
             {
                 if (arg1.name == Game)
@@ -113,14 +115,16 @@ namespace CustomFloorPlugin.Util
             }
         }
 
-        private void OnMenuSceneWasLoaded()
+        private void OnMenuSceneWasLoaded(ScenesTransitionSetupDataSO a, dynamic b)
         {
+            Debug.Log("OnMenuSceneWasLoaded");
             gameScenesManager.transitionDidFinishEvent -= OnMenuSceneWasLoaded;
             InvokeAll(menuSceneLoaded);
         }
-
-        private void OnMenuSceneWasLoadedFresh()
+        
+        private void OnMenuSceneWasLoadedFresh(ScenesTransitionSetupDataSO a, dynamic b)
         {
+            Debug.Log("OnMenuSceneWasLoadedFresh");
             gameScenesManager.transitionDidFinishEvent -= OnMenuSceneWasLoadedFresh;
 
             var levelDetailViewController = Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().FirstOrDefault();
@@ -129,22 +133,23 @@ namespace CustomFloorPlugin.Util
             var characteristicSelect = Resources.FindObjectsOfTypeAll<BeatmapCharacteristicSegmentedControlController>().FirstOrDefault();
             characteristicSelect.didSelectBeatmapCharacteristicEvent += delegate (BeatmapCharacteristicSegmentedControlController controller, BeatmapCharacteristicSO characteristic) { InvokeAll(characteristicSelected, controller, characteristic); };
 
-            var packSelectViewController = Resources.FindObjectsOfTypeAll<LevelPacksViewController>().FirstOrDefault();
-            packSelectViewController.didSelectPackEvent += delegate (LevelPacksViewController controller, IBeatmapLevelPack pack) { InvokeAll(levelPackSelected, controller, pack); };
-            var levelSelectViewController = Resources.FindObjectsOfTypeAll<LevelPackLevelsViewController>().FirstOrDefault();
-            levelSelectViewController.didSelectLevelEvent += delegate (LevelPackLevelsViewController controller, IPreviewBeatmapLevel level) { InvokeAll(levelSelected, controller, level); };
+            /*var packSelectViewController = Resources.FindObjectsOfTypeAll<LevelPacksViewController>().FirstOrDefault();
+            packSelectViewController.didSelectPackEvent += delegate (LevelPacksViewController controller, IBeatmapLevelPack pack) { InvokeAll(levelPackSelected, controller, pack); };*/
+            var levelSelectViewController = Resources.FindObjectsOfTypeAll<LevelCollectionViewController>().FirstOrDefault();
+            levelSelectViewController.didSelectLevelEvent += delegate (LevelCollectionViewController controller, IPreviewBeatmapLevel level) { InvokeAll(levelSelected, controller, level); };
 
             InvokeAll(menuSceneLoadedFresh);
         }
 
-        private void GameSceneSceneWasLoaded()
+        private void GameSceneSceneWasLoaded(ScenesTransitionSetupDataSO a, Zenject.DiContainer b)
         {
             // Prevent firing this event when returning to menu
             Resources.FindObjectsOfTypeAll<GameScenesManager>().FirstOrDefault().transitionDidFinishEvent -= GameSceneSceneWasLoaded;
 
-            var pauseManager = Resources.FindObjectsOfTypeAll<GamePauseManager>().FirstOrDefault();
-            pauseManager.GetPrivateField<Signal>("_gameDidResumeSignal").Subscribe(delegate () { InvokeAll(songUnpaused); });
-            pauseManager.GetPrivateField<Signal>("_gameDidPauseSignal").Subscribe(delegate () { InvokeAll(songPaused); });
+            var pauseManager = Resources.FindObjectsOfTypeAll<GamePause>().FirstOrDefault();
+            Debug.Log(pauseManager);
+            pauseManager.didResumeEvent += delegate () { InvokeAll(songUnpaused); };
+            pauseManager.didPauseEvent += delegate () { InvokeAll(songPaused); };
 
             var scoreController = Resources.FindObjectsOfTypeAll<ScoreController>().FirstOrDefault();
             scoreController.noteWasCutEvent += delegate (NoteData noteData, NoteCutInfo noteCutInfo, int multiplier) { InvokeAll(noteWasCut, noteData, noteCutInfo, multiplier); };
@@ -152,11 +157,11 @@ namespace CustomFloorPlugin.Util
             scoreController.multiplierDidChangeEvent += delegate (int multiplier, float progress) { InvokeAll(multiplierDidChange, multiplier, progress); if (multiplier > 1 && progress < 0.1f) InvokeAll(multiplierDidIncrease, multiplier); };
             scoreController.comboDidChangeEvent += delegate (int combo) { InvokeAll(comboDidChange, combo); };
             scoreController.comboBreakingEventHappenedEvent += delegate () { InvokeAll(comboDidBreak); };
-            scoreController.scoreDidChangeEvent += delegate (int score) { InvokeAll(scoreDidChange); };
+            scoreController.scoreDidChangeEvent += delegate (int rawScore, int modifiedScore) { InvokeAll(scoreDidChange, rawScore, modifiedScore); };
 
             var saberCollisionManager = Resources.FindObjectsOfTypeAll<ObstacleSaberSparkleEffectManager>().FirstOrDefault();
-            saberCollisionManager.sparkleEffectDidStartEvent += delegate (Saber.SaberType saber) { InvokeAll(sabersStartCollide, saber); };
-            saberCollisionManager.sparkleEffectDidEndEvent += delegate (Saber.SaberType saber) { InvokeAll(sabersEndCollide, saber); };
+            saberCollisionManager.sparkleEffectDidStartEvent += delegate (SaberType saber) { InvokeAll(sabersStartCollide, saber); };
+            saberCollisionManager.sparkleEffectDidEndEvent += delegate (SaberType saber) { InvokeAll(sabersEndCollide, saber); };
 
             var gameEnergyCounter = Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
             gameEnergyCounter.gameEnergyDidReach0Event += delegate () { InvokeAll(energyReachedZero); };
@@ -176,11 +181,16 @@ namespace CustomFloorPlugin.Util
                     case LevelCompletionResults.LevelEndStateType.Failed:
                         InvokeAll(levelFailed, data, results);
                         break;
-                    case LevelCompletionResults.LevelEndStateType.Quit:
-                        InvokeAll(levelQuit, data, results);
-                        break;
-                    case LevelCompletionResults.LevelEndStateType.Restart:
-                        InvokeAll(levelRestarted, data, results);
+                    default:
+                        switch (results.levelEndAction)
+                        {
+                            case LevelCompletionResults.LevelEndAction.Quit:
+                                InvokeAll(levelQuit, data, results);
+                                break;
+                            case LevelCompletionResults.LevelEndAction.Restart:
+                                InvokeAll(levelRestarted, data, results);
+                                break;
+                        }
                         break;
                 };
             };
