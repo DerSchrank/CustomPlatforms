@@ -19,7 +19,7 @@ namespace CustomFloorPlugin.Util
         // Menu Events
         public static event Action<StandardLevelDetailViewController, IDifficultyBeatmap> difficultySelected;
         public static event Action<BeatmapCharacteristicSegmentedControlController, BeatmapCharacteristicSO> characteristicSelected;
-        //public static event Action<LevelPacksViewController, IBeatmapLevelPack> levelPackSelected;
+        public static event Action<LevelFilteringNavigationController, IAnnotatedBeatmapLevelCollection> levelPackSelected;
         public static event Action<LevelCollectionViewController, IBeatmapLevel> levelSelected;
 
         // Game Events
@@ -72,7 +72,6 @@ namespace CustomFloorPlugin.Util
 
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)
         {
-            Debug.Log($"SceneManagerOnActiveSceneChanged {arg1.name}");
             try
             {
                 if (arg1.name == Game)
@@ -117,14 +116,12 @@ namespace CustomFloorPlugin.Util
 
         private void OnMenuSceneWasLoaded(ScenesTransitionSetupDataSO a, dynamic b)
         {
-            Debug.Log("OnMenuSceneWasLoaded");
             gameScenesManager.transitionDidFinishEvent -= OnMenuSceneWasLoaded;
             InvokeAll(menuSceneLoaded);
         }
         
         private void OnMenuSceneWasLoadedFresh(ScenesTransitionSetupDataSO a, dynamic b)
         {
-            Debug.Log("OnMenuSceneWasLoadedFresh");
             gameScenesManager.transitionDidFinishEvent -= OnMenuSceneWasLoadedFresh;
 
             var levelDetailViewController = Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().FirstOrDefault();
@@ -133,8 +130,8 @@ namespace CustomFloorPlugin.Util
             var characteristicSelect = Resources.FindObjectsOfTypeAll<BeatmapCharacteristicSegmentedControlController>().FirstOrDefault();
             characteristicSelect.didSelectBeatmapCharacteristicEvent += delegate (BeatmapCharacteristicSegmentedControlController controller, BeatmapCharacteristicSO characteristic) { InvokeAll(characteristicSelected, controller, characteristic); };
 
-            /*var packSelectViewController = Resources.FindObjectsOfTypeAll<LevelPacksViewController>().FirstOrDefault();
-            packSelectViewController.didSelectPackEvent += delegate (LevelPacksViewController controller, IBeatmapLevelPack pack) { InvokeAll(levelPackSelected, controller, pack); };*/
+            var packSelectViewController = Resources.FindObjectsOfTypeAll<LevelFilteringNavigationController>().FirstOrDefault();
+            packSelectViewController.didSelectAnnotatedBeatmapLevelCollectionEvent += delegate (LevelFilteringNavigationController controller, IAnnotatedBeatmapLevelCollection e, GameObject f, BeatmapCharacteristicSO g) { InvokeAll(levelPackSelected, controller, e); };
             var levelSelectViewController = Resources.FindObjectsOfTypeAll<LevelCollectionViewController>().FirstOrDefault();
             levelSelectViewController.didSelectLevelEvent += delegate (LevelCollectionViewController controller, IPreviewBeatmapLevel level) { InvokeAll(levelSelected, controller, level); };
 
