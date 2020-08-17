@@ -78,8 +78,8 @@ namespace CustomFloorPlugin
             {
                 foreach (CustomPlatform platform in platforms)
                 {
-                    platform.gameObject.SetActive(false);
-                    //Destroy(platform.gameObject);
+                    //platform.gameObject.SetActive(false);
+                    Destroy(platform.gameObject);
                 }
             }
             platforms = platformLoader.CreateAllPlatforms(transform);
@@ -132,7 +132,6 @@ namespace CustomFloorPlugin
 
         private void HandleMenuSceneLoaded()
         {
-            Debug.Log("PlatformFromUserPrefs?");
             menuEnvHider.HideObjectsForPlatform(currentPlatform);
             PlatformFromUserPrefs();
         }
@@ -194,6 +193,7 @@ namespace CustomFloorPlugin
             gameEnvHider.HideObjectsForPlatform(currentPlatform);
 
             // Update lightSwitchEvent TubeLight references
+            //TubeLightManager.SetColorToDefault(currentPlatform);
             //TubeLightManager.UpdateEventTubeLightList();
         }
     }

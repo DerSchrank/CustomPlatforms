@@ -137,13 +137,13 @@ namespace CustomFloorPlugin
             }
         }
 
-        internal static void SetColorToDefault(CustomPlatform currentPlatform)
+        /*internal static void SetColorToDefault(CustomPlatform currentPlatform)
         {
             for (int i = 0; i < 16; i++)
             {
                 defaultLightWithIdManager.SetColorForId(i, Color.green);
             }
-        }
+        }*/
 
         public static void UpdateEventTubeLightList()
         {
