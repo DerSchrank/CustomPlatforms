@@ -1,21 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace CustomFloorPlugin
 {
     public class SpectrogramMaterial : MonoBehaviour
     {
-        private Renderer renderer;
-        private BasicSpectrogramData spectrogramData;
         [Header("The Array property (uniform float arrayName[64])")]
-        public String PropertyName;
+        public string PropertyName;
         [Header("The global intensity (float valueName)")]
-        public String AveragePropertyName;
+        public string AveragePropertyName;
 
-        public void setData(BasicSpectrogramData newData)
+        // ----
+
+        private Renderer renderer;
+        private dynamic spectrogramData;
+
+        public void setData(dynamic newData)
         {
             spectrogramData = newData;
         }
@@ -34,7 +33,7 @@ namespace CustomFloorPlugin
                 {
                     average += spectrogramData.ProcessedSamples[i];
                 }
-                average = average / 64.0f;
+                average /= 64.0f;
 
                 foreach (Material mat in renderer.materials)
                 {

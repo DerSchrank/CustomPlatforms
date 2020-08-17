@@ -2,12 +2,13 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Zenject;
 
 namespace CustomFloorPlugin.Util
 {
     class BSEvents : MonoBehaviour
     {
-        static BSEvents Instance;
+        public static BSEvents Instance;
 
         //Scene Events
         public static event Action menuSceneActive;
@@ -50,6 +51,7 @@ namespace CustomFloorPlugin.Util
         const string EmptyTransition = "EmptyTransition";
 
         GameScenesManager gameScenesManager;
+        public DiContainer diContainer;
 
         public static void OnLoad()
         {
@@ -114,14 +116,16 @@ namespace CustomFloorPlugin.Util
             }
         }
 
-        private void OnMenuSceneWasLoaded(ScenesTransitionSetupDataSO a, dynamic b)
+        private void OnMenuSceneWasLoaded(ScenesTransitionSetupDataSO a, DiContainer b)
         {
+            diContainer = b;
             gameScenesManager.transitionDidFinishEvent -= OnMenuSceneWasLoaded;
             InvokeAll(menuSceneLoaded);
         }
         
-        private void OnMenuSceneWasLoadedFresh(ScenesTransitionSetupDataSO a, dynamic b)
+        private void OnMenuSceneWasLoadedFresh(ScenesTransitionSetupDataSO a, DiContainer b)
         {
+            diContainer = b;
             gameScenesManager.transitionDidFinishEvent -= OnMenuSceneWasLoadedFresh;
 
             var levelDetailViewController = Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().FirstOrDefault();

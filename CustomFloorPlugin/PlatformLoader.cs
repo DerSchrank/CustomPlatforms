@@ -119,7 +119,7 @@ namespace CustomFloorPlugin
             
             AddManagers(newPlatform);
 
-            newPlatform.SetActive(false);
+            newPlatform.gameObject.SetActive(false);
 
             return customPlatform;
         }
@@ -134,7 +134,6 @@ namespace CustomFloorPlugin
             // Replace materials for this object
             MaterialSwapper.ReplaceMaterialsForGameObject(go);
             
-            /*
             // Add a tube light manager if there are tube light descriptors
             if (go.GetComponentInChildren<TubeLight>(true) != null)
             {
@@ -142,7 +141,6 @@ namespace CustomFloorPlugin
                 if(tlm == null) tlm = root.AddComponent<TubeLightManager>();
                 tlm.CreateTubeLights(go);
             }
-            */
             
             // Rotation effect manager
             if (go.GetComponentInChildren<RotationEventEffect>(true) != null)

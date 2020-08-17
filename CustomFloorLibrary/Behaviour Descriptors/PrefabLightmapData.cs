@@ -66,7 +66,7 @@ namespace CustomFloorPlugin
             }
             catch (Exception ex)
             {
-                Plugin.logger.Error(ex.Message + "\n" + ex.StackTrace);
+                Debug.LogError(ex.Message + "\n" + ex.StackTrace);
             }
         }
 

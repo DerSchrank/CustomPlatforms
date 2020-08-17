@@ -5,6 +5,7 @@
 using StreamWriter = System.IO.StreamWriter;
 
 using UnityEngine;
+using System.Linq;
 
 namespace CustomFloorPlugin
 {
@@ -15,10 +16,11 @@ namespace CustomFloorPlugin
             string filename = Application.dataPath + "/unity-scene.txt";
 
             var gameObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
-            
+            var objs = Resources.FindObjectsOfTypeAll<GameObject>().Where(it => it.transform.parent == null);
+
             using (StreamWriter writer = new StreamWriter(filename, false))
             {
-                foreach (GameObject gameObject in gameObjects)
+                foreach (GameObject gameObject in objs)
                 {
                     DumpGameObject(gameObject, writer, "");
                 }
@@ -46,7 +48,7 @@ namespace CustomFloorPlugin
 
         private static void DumpGameObject(GameObject gameObject, StreamWriter writer, string indent)
         {
-            writer.WriteLine("{0}+{1}", indent, gameObject.name);
+            writer.WriteLine("{0}+{1} - {2} {3} {4}", indent, gameObject.name, gameObject.GetType().Name, gameObject.activeSelf, gameObject.activeInHierarchy);
 
             foreach (Component component in gameObject.GetComponents<Component>())
             {

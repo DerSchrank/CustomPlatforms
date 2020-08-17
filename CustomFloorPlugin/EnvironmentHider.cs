@@ -76,7 +76,7 @@ namespace CustomFloorPlugin
             if (arlist == null) return;
             foreach (GameObject go in arlist)
             {
-                if(go!=null) go.SetActive(!hidden);
+                if (go != null) go.SetActive(!hidden);
             }
         }
 
@@ -137,7 +137,7 @@ namespace CustomFloorPlugin
         {
             bigRings = new ArrayList();
             FindAddGameObject("Environment/Dynamic/BigTrackLaneRings", bigRings);
-            foreach (var trackLaneRing in Resources.FindObjectsOfTypeAll<TrackLaneRing>().Where(x => x.name == "TrackLaneRingBig(Clone)"))
+            foreach (var trackLaneRing in Resources.FindObjectsOfTypeAll<TrackLaneRing>().Where(x => x.name == "BigTrackLaneRing(Clone)"))
             {
                 bigRings.Add(trackLaneRing.gameObject);
             }

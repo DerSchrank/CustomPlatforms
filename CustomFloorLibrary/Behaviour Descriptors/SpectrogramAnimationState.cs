@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace CustomFloorPlugin
 {
@@ -16,10 +12,12 @@ namespace CustomFloorPlugin
         [Header("Use the average of all samples, ignoring specified sample")]
         public bool averageAllSamples;
 
-        private Animation animation;
-        private BasicSpectrogramData spectrogramData;
+        // ----
 
-        public void setData(BasicSpectrogramData newData)
+        private Animation animation;
+        private dynamic spectrogramData;
+
+        public void setData(dynamic newData)
         {
             spectrogramData = newData;
         }
@@ -61,9 +59,10 @@ namespace CustomFloorPlugin
 
                     }
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
-                Plugin.logger.Error(e);
+                Debug.LogError(e);
             }
         }
     }

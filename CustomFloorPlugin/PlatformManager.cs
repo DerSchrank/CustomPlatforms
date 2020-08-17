@@ -1,8 +1,10 @@
 ﻿using UnityEngine;
 using System.Linq;
 using CustomFloorPlugin.Util;
-using BeatSaberMarkupLanguage.Attributes;
 using System.Collections.Generic;
+using BS_Utils.Utilities;
+using BSEvents = CustomFloorPlugin.Util.BSEvents;
+using System.Collections;
 
 namespace CustomFloorPlugin
 {
@@ -53,7 +55,12 @@ namespace CustomFloorPlugin
             //PlatformUI.OnLoad();
         }
 
-        public CustomPlatform AddPlatform(string path)
+        public static CustomPlatform AddPlatform(string path)
+        {
+            return Instance.DoAddPlatform(path);
+        }
+
+        public CustomPlatform DoAddPlatform(string path)
         {
             CustomPlatform newPlatform = platformLoader.LoadPlatformBundle(path, transform);
             if(newPlatform != null)
@@ -71,10 +78,16 @@ namespace CustomFloorPlugin
             {
                 foreach (CustomPlatform platform in platforms)
                 {
-                    Destroy(platform.gameObject);
+                    platform.gameObject.SetActive(false);
+                    //Destroy(platform.gameObject);
                 }
             }
             platforms = platformLoader.CreateAllPlatforms(transform);
+
+            foreach (var p in platforms)
+            {
+                p.gameObject.SetActive(false);
+            }
 
             PlatformFromUserPrefs();
         }
@@ -99,12 +112,16 @@ namespace CustomFloorPlugin
 
         private void HandleGameSceneLoaded()
         {
+            TubeLightManager.FixUnregisterErrors();
+
             gameEnvHider.FindEnvironment();
             gameEnvHider.HideObjectsForPlatform(currentPlatform);
 
             EnvironmentArranger.RearrangeEnvironment();
             TubeLightManager.CreateAdditionalLightSwitchControllers();
-            //TubeLightManager.UpdateEventTubeLightList();
+
+            //SceneDumper.DumpScene();
+            TubeLightManager.UpdateEventTubeLightList();
         }
 
         private void HandleMenuSceneLoadedFresh()
@@ -119,7 +136,7 @@ namespace CustomFloorPlugin
             menuEnvHider.HideObjectsForPlatform(currentPlatform);
             PlatformFromUserPrefs();
         }
-        
+
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.P))

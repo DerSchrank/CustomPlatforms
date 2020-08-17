@@ -6,7 +6,7 @@ public class SpectrogramColumns : MonoBehaviour
 {
     protected void Start()
     {
-        this.CreateColums();
+        this.CreateColumns();
     }
     
     protected void Update()
@@ -37,7 +37,7 @@ public class SpectrogramColumns : MonoBehaviour
         }
     }
     
-    private void CreateColums()
+    private void CreateColumns()
     {
         this._columnTransforms = new Transform[128];
         for (int i = 0; i < 64; i++)

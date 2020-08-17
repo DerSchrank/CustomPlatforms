@@ -1,5 +1,4 @@
 ﻿using BS_Utils.Utilities;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using BSEvents = CustomFloorPlugin.Util.BSEvents;
@@ -54,7 +53,9 @@ namespace CustomFloorPlugin
 
         public void CreateTrackRings(GameObject go)
         {
-            if(rotationSpawners == null) rotationSpawners = new List<TrackLaneRingsRotationEffectSpawner>();
+            var _container = BSEvents.Instance.diContainer;
+
+            if (rotationSpawners == null) rotationSpawners = new List<TrackLaneRingsRotationEffectSpawner>();
             if (stepSpawners == null) stepSpawners = new List<TrackLaneRingsPositionStepEffectSpawner>();
             if (trackLaneRingsManagers == null) trackLaneRingsManagers = new List<TrackLaneRingsManager>();
             if (trackRingsDescriptors == null) trackRingsDescriptors = new List<TrackRings>();
@@ -74,9 +75,12 @@ namespace CustomFloorPlugin
                 ReflectionUtil.SetPrivateField(ringsManager, "_ringCount", trackRingDesc.ringCount);
                 ReflectionUtil.SetPrivateField(ringsManager, "_ringPositionStep", trackRingDesc.ringPositionStep);
 
+                var bocc = new BeatmapObjectCallbackController();
+
                 if (trackRingDesc.useRotationEffect)
                 {
-                    var rotationEffect = trackRingDesc.gameObject.AddComponent<TrackLaneRingsRotationEffect>();
+                    var rotationEffect = _container.InstantiateComponent<TrackLaneRingsRotationEffect>(trackRingDesc.gameObject);
+                    //var rotationEffect = trackRingDesc.gameObject.AddComponent<TrackLaneRingsRotationEffect>();
 
                     ReflectionUtil.SetPrivateField(rotationEffect, "_trackLaneRingsManager", ringsManager);
                     ReflectionUtil.SetPrivateField(rotationEffect, "_startupRotationAngle", trackRingDesc.startupRotationAngle);
@@ -84,6 +88,7 @@ namespace CustomFloorPlugin
                     ReflectionUtil.SetPrivateField(rotationEffect, "_startupRotationPropagationSpeed", trackRingDesc.startupRotationPropagationSpeed);
                     ReflectionUtil.SetPrivateField(rotationEffect, "_startupRotationFlexySpeed", trackRingDesc.startupRotationFlexySpeed);
 
+                    //var rotationEffectSpawner = _container.InstantiateComponent<TrackLaneRingsRotationEffectSpawner>(trackRingDesc.gameObject);
                     var rotationEffectSpawner = trackRingDesc.gameObject.AddComponent<TrackLaneRingsRotationEffectSpawner>();
                     rotationSpawners.Add(rotationEffectSpawner);
 
@@ -92,9 +97,11 @@ namespace CustomFloorPlugin
                     ReflectionUtil.SetPrivateField(rotationEffectSpawner, "_rotationPropagationSpeed", trackRingDesc.rotationPropagationSpeed);
                     ReflectionUtil.SetPrivateField(rotationEffectSpawner, "_rotationFlexySpeed", trackRingDesc.rotationFlexySpeed);
                     ReflectionUtil.SetPrivateField(rotationEffectSpawner, "_trackLaneRingsRotationEffect", rotationEffect);
+                    ReflectionUtil.SetPrivateField(rotationEffectSpawner, "_beatmapObjectCallbackController", bocc);
                 }
                 if (trackRingDesc.useStepEffect)
                 {
+                    //var stepEffectSpawner = _container.InstantiateComponent<TrackLaneRingsPositionStepEffectSpawner>(trackRingDesc.gameObject);
                     var stepEffectSpawner = trackRingDesc.gameObject.AddComponent<TrackLaneRingsPositionStepEffectSpawner>();
                     stepSpawners.Add(stepEffectSpawner);
 
@@ -103,6 +110,7 @@ namespace CustomFloorPlugin
                     ReflectionUtil.SetPrivateField(stepEffectSpawner, "_minPositionStep", trackRingDesc.minPositionStep);
                     ReflectionUtil.SetPrivateField(stepEffectSpawner, "_maxPositionStep", trackRingDesc.maxPositionStep);
                     ReflectionUtil.SetPrivateField(stepEffectSpawner, "_moveSpeed", trackRingDesc.moveSpeed);
+                    ReflectionUtil.SetPrivateField(stepEffectSpawner, "_beatmapObjectCallbackController", bocc);
                 }
             }
         }

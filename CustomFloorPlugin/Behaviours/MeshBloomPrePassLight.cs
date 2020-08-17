@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 // Token: 0x02000048 RID: 72
 [RequireComponent(typeof(MeshFilter))]
@@ -20,17 +21,10 @@ public class MeshBloomPrePassLight : TubeBloomPrePassLight
         _parametricBoxController.enabled = false;
         renderer.material.color = color;
     }
-    
-    public new Color color
+
+    internal void UpdateColor(Color color)
     {
-        get
-        {
-            return base.color;
-        }
-        set
-        {
-            base.color = value;
-            if(renderer.material!=null) renderer.material.color = value;
-        }
+        this.color = color;
+        if (renderer.material != null) renderer.material.color = color;
     }
 }
