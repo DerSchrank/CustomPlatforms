@@ -26,7 +26,7 @@ namespace CustomFloorPlugin
 
         public static void SetColorToDefault(TubeLight tl, TubeBloomPrePassLightWithId tubeBloomLight)
         {
-            tubeBloomLight.ColorWasSet(tl.color * 0.7f);
+            tubeBloomLight.ColorWasSet(tl.color * 0.9f);
             //tubeBloomLight.Refresh();
         }
 
@@ -37,7 +37,6 @@ namespace CustomFloorPlugin
 
         public static bool setup = false;
         public static int z = 0;
-        private static Color off = new Color(0f, 0f, 0f, 0f);
 
         public static void SetupTubeLight(TubeLight tl, DiContainer _container)
         {
@@ -92,9 +91,14 @@ namespace CustomFloorPlugin
                 BSEvents.menuSceneLoadedFresh -= setColorToDefault;
             };
 
+            var lightType = tubeBloomLight.GetPrivateField<BloomPrePassLightTypeSO>("_lightType", typeof(BloomPrePassLight));
+            //tubeBloomLight.SetPrivateField("_lightType", lightType, typeof(BloomPrePassLight));
+            tubeBloomLight.SetPrivateField("_registeredWithLightType", lightType, typeof(BloomPrePassLight));
+
             tubeBloomLight.SetPrivateField("_width", tl.width * 2);
             tubeBloomLight.SetPrivateField("_length", tl.length);
             tubeBloomLight.SetPrivateField("_center", tl.center);
+            tubeBloomLight.SetPrivateField("_bloomFogIntensityMultiplier", 0.3f);
             tubeBloomLight.SetPrivateField("_transform", tubeBloomLight.transform);
             var parabox = tubeBloomLight.GetComponentInChildren<ParametricBoxController>();
             tubeBloomLight.SetPrivateField("_parametricBoxController", parabox);
@@ -157,6 +161,14 @@ namespace CustomFloorPlugin
                 light.InvokeMethod("OnDisable");
                 ReflectionUtil.SetPrivateField(light, "_lightManager", manager, typeof(LightWithId));
                 light.InvokeMethod("OnEnable");
+
+                // Hack to prevent null reference exceptions
+                var bppl = light.GetComponent<TubeBloomPrePassLight>();
+                if (bppl != null)
+                {
+                    var lightType = bppl.GetPrivateField<BloomPrePassLightTypeSO>("_lightType", typeof(BloomPrePassLight));
+                    bppl.SetPrivateField("_registeredWithLightType", lightType, typeof(BloomPrePassLight));
+                }
             }
 
             var bocc = Resources.FindObjectsOfTypeAll<BeatmapObjectCallbackController>().First();

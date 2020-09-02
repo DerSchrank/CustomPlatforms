@@ -25,6 +25,10 @@ public class MeshBloomPrePassLight : TubeBloomPrePassLight
     internal void UpdateColor(Color color)
     {
         this.color = color;
-        if (renderer.material != null) renderer.material.color = color;
+        if (renderer.material != null)
+        {
+            renderer.enabled = color.a > 0;
+            renderer.material.color = color;
+        }
     }
 }

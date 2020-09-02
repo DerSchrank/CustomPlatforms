@@ -2,7 +2,7 @@
   "$schema": "https://github.com/nike4613/BSIPA-MetadataFileSchema/master/Schema.json",
   "author": "Top_Cat",
   "description": "A plugin to support custom platforms and environments",
-  "gameVersion": "1.10.0",
+  "gameVersion": "1.11.0",
   "id": "Custom Platforms",
   "name": "Custom Platforms",
   "version": "3.0.0",
